@@ -13,6 +13,7 @@
     "express": "4.13.4"
   },
   "devDependencies": {
+    "mongoose": "4.4.17",
     "webpack": "1.13.0"
   }
 }
