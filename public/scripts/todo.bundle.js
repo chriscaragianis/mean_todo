@@ -11,6 +11,7 @@ webpackJsonp([0],[
 	__webpack_require__(3);
 	__webpack_require__(4);
 	__webpack_require__(5);
+	__webpack_require__(6);
 
 
 
@@ -27,39 +28,52 @@ webpackJsonp([0],[
 	angular.module("todoListApp")
 	.controller('mainCtrl', function($scope, dataService){
 
+	  dataService.getTodos(function(response) {
+	    var todos = response.data.todos;
+	    $scope.todos = todos;
+	  });
+
 	  $scope.addTodo = function() {
 	    var todo = {name: "A new todo"};
 	    $scope.todos.unshift(todo);
 	  };
-	  $scope.helloWorld = function() {
-	    console.log("Hello there");
-	  };
 
-	  $scope.todos = dataService.getTodos();
+	});
 
-	  dataService.getTodos(function(response) {
-	    console.log(response.data.todos);
-	    $scope.todos = response.data.todos;
-	  });
 
-	  $scope.deleteTodo = function(todo, index) {
-	    dataService.deleteTodo(todo);
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	angular.module('todoListApp')
+	.controller('todoCtrl', function($scope, dataService) {
+	  $scope.deleteTodo = function() {
 	    $scope.todos.splice(index, 1);
+	    dataService.deleteTodo(todo);
 	  };
 
 	  $scope.saveTodos = function() {
 	    var filteredTodos = $scope.todos.filter(function(todo) {
 	      if (todo.edited) {
 	        return todo;
-	      }
+	      };
 	    });
-	    dataService.saveTodos(filteredTodos);
+	    dataService.saveTodos(filteredTodos)
+	    .finally($scope.resetTodoState());
+	  };
+
+	  $scope.resetTodoState = function() {
+	    $scope.todos.forEach(function(todo) {
+	      todo.edited = false;
+	    });
 	  };
 	});
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -70,7 +84,7 @@ webpackJsonp([0],[
 	.directive('todos', function() {
 	  return {
 	    templateUrl: 'templates/todos.html',
-	    controller: 'mainCtrl',
+	    controller: 'todoCtrl',
 	    replace: true
 	  }
 	});
@@ -78,14 +92,14 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	'use strict';
 
 	angular.module("todoListApp")
 
-	.service('dataService', function($http) {
+	.service('dataService', function($http, $q) {
 	  this.helloConsole = function() {
 	    console.log("LOG THIS service guy");
 	  };
@@ -100,7 +114,17 @@ webpackJsonp([0],[
 	  };
 
 	  this.saveTodos = function(todos) {
-	    console.log(todos.length+ " todos have been saved");
+	    var queue = [];
+	    todos.forEach(function(todo) {
+	      var request;
+	      if (!todo._id){
+	        request = $http.post('/api/todos', todo);
+	      };
+	      queue.push(request);
+	    });
+	    return $q.all(queue).then(function(results) {
+	      console.log("I saved " + todos.length + " todos!");
+	    });
 	  };
 	});
 

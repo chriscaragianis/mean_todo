@@ -2,7 +2,7 @@
 
 angular.module("todoListApp")
 
-.service('dataService', function($http) {
+.service('dataService', function($http, $q) {
   this.helloConsole = function() {
     console.log("LOG THIS service guy");
   };
@@ -17,6 +17,16 @@ angular.module("todoListApp")
   };
 
   this.saveTodos = function(todos) {
-    console.log(todos.length+ " todos have been saved");
+    var queue = [];
+    todos.forEach(function(todo) {
+      var request;
+      if (!todo._id){
+        request = $http.post('/api/todos', todo);
+      };
+      queue.push(request);
+    });
+    return $q.all(queue).then(function(results) {
+      console.log("I saved " + todos.length + " todos!");
+    });
   };
 });

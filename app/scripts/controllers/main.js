@@ -5,32 +5,14 @@ var angular = require('angular');
 angular.module("todoListApp")
 .controller('mainCtrl', function($scope, dataService){
 
+  dataService.getTodos(function(response) {
+    var todos = response.data.todos;
+    $scope.todos = todos;
+  });
+
   $scope.addTodo = function() {
     var todo = {name: "A new todo"};
     $scope.todos.unshift(todo);
   };
-  $scope.helloWorld = function() {
-    console.log("Hello there");
-  };
 
-  $scope.todos = dataService.getTodos();
-
-  dataService.getTodos(function(response) {
-    console.log(response.data.todos);
-    $scope.todos = response.data.todos;
-  });
-
-  $scope.deleteTodo = function(todo, index) {
-    dataService.deleteTodo(todo);
-    $scope.todos.splice(index, 1);
-  };
-
-  $scope.saveTodos = function() {
-    var filteredTodos = $scope.todos.filter(function(todo) {
-      if (todo.edited) {
-        return todo;
-      }
-    });
-    dataService.saveTodos(filteredTodos);
-  };
 });
